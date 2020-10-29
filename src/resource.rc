@@ -1,3 +1,11 @@
 #include <windows.h>
 
 #include "resource.h"
+
+IDR_DEBUG MENU
+BEGIN
+	POPUP "&Debug"
+	BEGIN
+		MENUITEM "Show &Bombs", IDD_DEBUG_SHOW_BOMBS
+	END
+END
