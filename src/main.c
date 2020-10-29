@@ -1,9 +1,14 @@
 #include <windows.h>
 #include <stdio.h>
 
+#define ID_BUTTON 9000
+
 const char g_szClassName[] = "mineSweeperClass";
 
-BOOL InitalizeButtons(HWND hwnd, int cols, int rows)
+int g_boardCols = 10;
+int g_boardRows = 15;
+
+BOOL PositionButtons(HWND hwnd)
 {
     RECT rect;
     if(!GetClientRect(hwnd, &rect))
@@ -14,22 +19,60 @@ BOOL InitalizeButtons(HWND hwnd, int cols, int rows)
     int window_width = rect.right - rect.left;
     int window_height = rect.bottom - rect.top;
     
-    for(int y = 0; y < rows; ++y)
-        for(int x = 0; x < cols; ++x)
+    for(int y = 0; y < g_boardRows; ++y)
+        for(int x = 0; x < g_boardCols; ++x)
     {
-        int button_width = window_width / cols;
-        int button_height = window_height / rows;
-        int button_left = window_width / cols * x;
-        int button_top = window_height / rows * y;
+        int button_width = window_width / g_boardCols;
+        int button_height = window_height / g_boardRows;
+        int button_left = window_width / g_boardCols * x;
+        int button_top = window_height / g_boardRows * y;
         
-        HWND hwndButton = CreateWindow("BUTTON", "B", 
-                                       WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-                                       button_left, button_top, button_width, button_height,
-                                       hwnd, NULL, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
+        int button_id = g_boardCols * y + x + ID_BUTTON + 1;
         
-        HFONT hFont = CreateFont(24,0,0,0, FW_DONTCARE, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
-                                 CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, NULL);
-        SendMessage(hwndButton, WM_SETFONT, (WPARAM)hFont, 0);
+        HWND button_hwnd = GetDlgItem(hwnd, button_id);
+        
+        if(button_hwnd == NULL)
+        {
+            MessageBox(hwnd, "Failed to get button handle!", "Error", MB_OK | MB_ICONERROR);
+            return FALSE;
+        }
+        
+        MoveWindow(button_hwnd, button_left, button_top, button_width, button_height, TRUE);
+    }
+    return TRUE;
+}
+
+BOOL InitalizeButtons(HWND hwnd)
+{
+    RECT rect;
+    if(!GetClientRect(hwnd, &rect))
+    {
+        MessageBox(hwnd, "Failed to get window Rect!", "Error", MB_OK | MB_ICONERROR);
+    }
+    
+    HFONT hFont = CreateFont(24,0,0,0, FW_DONTCARE, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
+                             CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, NULL);
+    
+    if(hFont == NULL)
+    {
+        MessageBox(hwnd, "Failed to create font!", "Error", MB_OK | MB_ICONERROR);
+    }
+    
+    for(int y = 0; y < g_boardRows; ++y)
+        for(int x = 0; x < g_boardCols; ++x)
+    {
+        int button_id = g_boardCols * y + x + ID_BUTTON + 1;
+        
+        HWND button_hwnd = CreateWindow("BUTTON", "B", 
+                                        WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+                                        0, 0, 32, 32,
+                                        hwnd, (HMENU)button_id, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
+        if(button_hwnd == NULL)
+        {
+            MessageBox(hwnd, "Failed to create button!", "Error", MB_OK | MB_ICONERROR);
+        }
+        
+        SendMessage(button_hwnd, WM_SETFONT, (WPARAM)hFont, 0);
     }
     return TRUE;
 }
@@ -38,11 +81,25 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch(msg)
     {
+        case WM_COMMAND:
+        {
+            int button_id = LOWORD(wParam);
+            HWND button_hwnd = GetDlgItem(hwnd, button_id);
+            
+            EnableWindow(button_hwnd, FALSE);
+        } break;
         case WM_CREATE:
         {
-            if(!InitalizeButtons(hwnd, 10, 15))
+            if(!InitalizeButtons(hwnd))
             {
                 MessageBox(hwnd, "Failed to create game board!", "Error", MB_OK | MB_ICONERROR);
+            }
+        } break;
+        case WM_SIZE:
+        {
+            if(!PositionButtons(hwnd))
+            {
+                MessageBox(hwnd, "Failed to position buttons!", "Error", MB_OK | MB_ICONERROR);
             }
         } break;
         case WM_CLOSE:
