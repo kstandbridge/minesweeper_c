@@ -14,6 +14,22 @@ int g_num_bombs = 10;
 
 int* g_pBombs = NULL;
 
+BOOL ClearBoard(HWND hwnd)
+{
+    for(int y = 0; y < g_boardRows; ++y)
+        for(int x = 0; x < g_boardCols; ++x)
+    {
+        int button_id = g_boardCols * y + x + ID_BUTTON + 1;
+        
+        HWND button_hwnd = GetDlgItem(hwnd, button_id);
+        assert(button_hwnd != NULL);
+        
+        BOOL res = DestroyWindow(button_hwnd);
+        assert(res);
+    }
+    return TRUE;
+}
+
 BOOL IsBombOnButton(int button_id)
 {
     BOOL found = FALSE;
@@ -194,6 +210,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     
                     if(hButton != NULL)
                     {
+                        if(IsBombOnButton(button_id))
+                        {
+                            MessageBox(hwnd, "Bomb! Game Over...", "BOOM", MB_OK | MB_ICONWARNING);
+                            ClearBoard(hwnd);
+                            InitalizeButtons(hwnd);
+                            ToggleBombVisibility(hwnd, FALSE);
+                            PositionButtons(hwnd);
+                            break;
+                        }
+                        
                         int bomb_count = 0;
                         if(IsBombOnButton(button_id - 1)) bomb_count++; // Left
                         if(IsBombOnButton(button_id - 1 - g_boardCols)) bomb_count++; // TopLeft
