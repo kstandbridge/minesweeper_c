@@ -14,6 +14,20 @@ int g_num_bombs = 10;
 
 int* g_pBombs = NULL;
 
+BOOL IsBombOnButton(int button_id)
+{
+    BOOL found = FALSE;
+    for(int i = 0; i < g_num_bombs; i++)
+    {
+        if(g_pBombs[i] == button_id)
+        {
+            found = TRUE;
+            break;
+        }
+    }
+    return found;
+}
+
 BOOL ToggleBombVisibility(HWND hwnd, BOOL show_bombs)
 {
     for(int y = 0; y < g_boardRows; ++y)
@@ -180,6 +194,22 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     
                     if(hButton != NULL)
                     {
+                        int bomb_count = 0;
+                        if(IsBombOnButton(button_id - 1)) bomb_count++; // Left
+                        if(IsBombOnButton(button_id - 1 - g_boardCols)) bomb_count++; // TopLeft
+                        if(IsBombOnButton(button_id - g_boardCols)) bomb_count++; // Top
+                        if(IsBombOnButton(button_id + 1 - g_boardCols)) bomb_count++; // TopRight
+                        if(IsBombOnButton(button_id + 1)) bomb_count++; // Right
+                        if(IsBombOnButton(button_id + 1 + g_boardCols)) bomb_count++; // BottomRight
+                        if(IsBombOnButton(button_id + g_boardCols)) bomb_count++; // Bottom
+                        if(IsBombOnButton(button_id - 1 + g_boardCols)) bomb_count++; // BottomLeft
+                        
+                        char buf[3];
+                        
+                        sprintf(buf, "%d", bomb_count);
+                        
+                        SendMessage(hButton, WM_SETTEXT, 0, (LPARAM)buf);
+                        
                         EnableWindow(hButton, FALSE);
                     }
                 } break;
