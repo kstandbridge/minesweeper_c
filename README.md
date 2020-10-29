@@ -7,8 +7,8 @@ The goal of this project is to learn to use the Win32 API using C
 - [x] chore: initialize git repository
 - [x] feat: draw a grid of buttons
 - [x] feat: auto resize the buttons with the window
+- [x] feat: randomly place x bombs on the buttons
 - [ ] feat: add debug menu to show bombs
-- [ ] feat: randomly place x bombs on the buttons
 - [ ] feat: show number of bombs on button click
 - [ ] feat: when bomb click game over and reset
 - [ ] feat: auto click surrounding buttons if no bombs

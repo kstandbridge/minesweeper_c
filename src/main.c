@@ -7,6 +7,9 @@ const char g_szClassName[] = "mineSweeperClass";
 
 int g_boardCols = 10;
 int g_boardRows = 15;
+int g_num_bombs = 10;
+
+int* g_pBombs = NULL;
 
 BOOL PositionButtons(HWND hwnd)
 {
@@ -58,12 +61,33 @@ BOOL InitalizeButtons(HWND hwnd)
         MessageBox(hwnd, "Failed to create font!", "Error", MB_OK | MB_ICONERROR);
     }
     
+    if(g_pBombs)
+    {
+        GlobalFree(g_pBombs);
+    }
+    g_pBombs = GlobalAlloc(GPTR, g_num_bombs);
+    
+    for(int i = 0; i < g_num_bombs; i++)
+    {
+        int random_number = rand() % (g_boardRows * g_boardCols);
+        g_pBombs[i] = random_number + ID_BUTTON + 1;
+    }
+    
     for(int y = 0; y < g_boardRows; ++y)
         for(int x = 0; x < g_boardCols; ++x)
     {
         int button_id = g_boardCols * y + x + ID_BUTTON + 1;
+        char* button_text = "";
+        for(int i = 0; i < g_num_bombs; i++)
+        {
+            if(g_pBombs[i] == button_id)
+            {
+                button_text = "B\0";
+                break;
+            }
+        }
         
-        HWND button_hwnd = CreateWindow("BUTTON", "B", 
+        HWND button_hwnd = CreateWindow("BUTTON", button_text, 
                                         WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
                                         0, 0, 32, 32,
                                         hwnd, (HMENU)button_id, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
@@ -90,6 +114,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         } break;
         case WM_CREATE:
         {
+            srand(time(NULL));
+            
             if(!InitalizeButtons(hwnd))
             {
                 MessageBox(hwnd, "Failed to create game board!", "Error", MB_OK | MB_ICONERROR);
@@ -108,6 +134,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         } break;
         case WM_DESTROY:
         {
+            if(g_pBombs)
+            {
+                GlobalFree(g_pBombs);
+            }
             PostQuitMessage(0);
         } break;
         default:
