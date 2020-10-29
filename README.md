@@ -20,3 +20,7 @@ The goal of this project is to learn to use the Win32 API using C
 - [ ] feat: add timer when game starts
 - [ ] feat: right click to flag as bomb
 - [ ] feat: color flag buttons green/red at end game
+
+- [ ] tech: only redraw once all buttons are created
+- [ ] tech: error handling to assert/message box
+- [ ] tech: seperate game logic from ui logic
