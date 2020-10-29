@@ -6,7 +6,7 @@ del *.pdb > NUL 2> NUL
 echo WAITING FOR PDB > lock.tmp
 
 rc -nologo ..\src\resource.rc
-cl -nologo -Zi -FC ..\src\main.c ..\src\resource.res /link user32.lib /out:main.exe
+cl -nologo -Zi -FC ..\src\main.c ..\src\resource.res /link user32.lib gdi32.lib /out:main.exe
 
 del *.obj
 del lock.tmp
