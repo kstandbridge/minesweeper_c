@@ -13,7 +13,7 @@ The goal of this project is to learn to use the Win32 API using C
 - [x] feat: when bomb click game over and reset
 - [x] feat: auto click surrounding buttons if no bombs
 - [x] feat: show disabled button when no bombs
-- [ ] feat: add menu to restart game
+- [x] feat: add menu to restart game
 - [ ] feat: allow grid size to be changed
 - [ ] feat: allow bomb number to be changed
 - [ ] feat: highlight button on cursor click
@@ -23,6 +23,7 @@ The goal of this project is to learn to use the Win32 API using C
 - [ ] feat: right click to flag as bomb
 - [ ] feat: color flag buttons green/red at end game
 
+- [ ] fix: bomb count on edge inaccurate
 - [ ] fix: toggle debug show bombs clears bomb count
 - [ ] fix: game reset ignores debug show bombs
 

@@ -244,6 +244,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             int button_id = LOWORD(wParam);
             switch(button_id)
             {
+                case IDD_GAME_NEW:
+                {
+                    ClearBoard(hwnd);
+                    InitalizeButtons(hwnd);
+                    ToggleBombVisibility(hwnd, FALSE);
+                    PositionButtons(hwnd);
+                } break;
+                case IDD_GAME_EXIT:
+                {
+                    PostMessage(hwnd, WM_CLOSE, 0, 0);
+                } break;
                 case IDD_DEBUG_SHOW_BOMBS:
                 {
                     HMENU hMenu = GetMenu(hwnd);
@@ -329,7 +340,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     wc.hIcon         = LoadIcon(NULL, IDI_APPLICATION);
     wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
     wc.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
-    wc.lpszMenuName  = MAKEINTRESOURCE(IDR_DEBUG);
+    wc.lpszMenuName  = MAKEINTRESOURCE(IDR_MENU);
     wc.lpszClassName = g_szClassName;
     wc.hIconSm       = LoadIcon(NULL, IDI_APPLICATION);
     
