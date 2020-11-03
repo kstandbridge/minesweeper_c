@@ -1,3 +1,5 @@
+#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' ""version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
+
 #include <windows.h>
 #include <stdio.h>
 #include <assert.h>
@@ -208,11 +210,14 @@ BOOL HandleButtonClick(HWND hwnd, int button_id, BOOL recursive)
         return TRUE;
     }
     
-    char buf[3];
-    
-    sprintf(buf, "%d", bomb_count);
-    
-    SendMessage(hButton, WM_SETTEXT, 0, (LPARAM)buf);
+    if(bomb_count > 0)
+    {
+        char buf[3];
+        
+        sprintf(buf, "%d", bomb_count);
+        
+        SendMessage(hButton, WM_SETTEXT, 0, (LPARAM)buf);
+    }
     
     EnableWindow(hButton, FALSE);
     
