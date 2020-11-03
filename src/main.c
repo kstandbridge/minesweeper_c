@@ -169,6 +169,67 @@ BOOL InitalizeButtons(HWND hwnd)
     return TRUE;
 }
 
+BOOL HandleButtonClick(HWND hwnd, int button_id, BOOL recursive)
+{
+    HWND hButton = GetDlgItem(hwnd, button_id);
+    if(hButton == NULL)
+    {
+        return FALSE;
+    }
+    assert(button_id > 9000);
+    
+    if(!IsWindowEnabled(hButton))
+    {
+        return TRUE;
+    }
+    
+    if(IsBombOnButton(button_id))
+    {
+        MessageBox(hwnd, "Bomb! Game Over...", "BOOM", MB_OK | MB_ICONWARNING);
+        ClearBoard(hwnd);
+        InitalizeButtons(hwnd);
+        ToggleBombVisibility(hwnd, FALSE);
+        PositionButtons(hwnd);
+        return TRUE;
+    }
+    
+    int bomb_count = 0;
+    if(IsBombOnButton(button_id - 1)) bomb_count++;               // Left
+    if(IsBombOnButton(button_id - 1 - g_boardCols)) bomb_count++; // TopLeft
+    if(IsBombOnButton(button_id - g_boardCols)) bomb_count++;     // Top
+    if(IsBombOnButton(button_id + 1 - g_boardCols)) bomb_count++; // TopRight
+    if(IsBombOnButton(button_id + 1)) bomb_count++;               // Right
+    if(IsBombOnButton(button_id + 1 + g_boardCols)) bomb_count++; // BottomRight
+    if(IsBombOnButton(button_id + g_boardCols)) bomb_count++;     // Bottom
+    if(IsBombOnButton(button_id - 1 + g_boardCols)) bomb_count++; // BottomLeft
+    
+    if(bomb_count > 0 && recursive == TRUE)
+    {
+        return TRUE;
+    }
+    
+    char buf[3];
+    
+    sprintf(buf, "%d", bomb_count);
+    
+    SendMessage(hButton, WM_SETTEXT, 0, (LPARAM)buf);
+    
+    EnableWindow(hButton, FALSE);
+    
+    if(bomb_count == 0)
+    {
+        HandleButtonClick(hwnd, button_id-1, TRUE);             // Left
+        HandleButtonClick(hwnd, button_id-1-g_boardCols, TRUE); // TopLeft
+        HandleButtonClick(hwnd, button_id-g_boardCols, TRUE);   // Top
+        HandleButtonClick(hwnd, button_id+1-g_boardCols, TRUE); // TopRight
+        HandleButtonClick(hwnd, button_id+1, TRUE);             // Right
+        HandleButtonClick(hwnd, button_id+1+g_boardCols, TRUE); // BottomRight
+        HandleButtonClick(hwnd, button_id+g_boardCols, TRUE);   // Bottom
+        HandleButtonClick(hwnd, button_id-1+g_boardCols, TRUE); // BottomLeft
+    }
+    return TRUE;
+}
+
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch(msg)
@@ -205,40 +266,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 } break;
                 default: 
                 {
-                    HWND hButton = GetDlgItem(hwnd, button_id);
-                    assert(button_id > 9000);
-                    
-                    if(hButton != NULL)
+                    if(!HandleButtonClick(hwnd, button_id, FALSE))
                     {
-                        if(IsBombOnButton(button_id))
-                        {
-                            MessageBox(hwnd, "Bomb! Game Over...", "BOOM", MB_OK | MB_ICONWARNING);
-                            ClearBoard(hwnd);
-                            InitalizeButtons(hwnd);
-                            ToggleBombVisibility(hwnd, FALSE);
-                            PositionButtons(hwnd);
-                            break;
-                        }
-                        
-                        int bomb_count = 0;
-                        if(IsBombOnButton(button_id - 1)) bomb_count++; // Left
-                        if(IsBombOnButton(button_id - 1 - g_boardCols)) bomb_count++; // TopLeft
-                        if(IsBombOnButton(button_id - g_boardCols)) bomb_count++; // Top
-                        if(IsBombOnButton(button_id + 1 - g_boardCols)) bomb_count++; // TopRight
-                        if(IsBombOnButton(button_id + 1)) bomb_count++; // Right
-                        if(IsBombOnButton(button_id + 1 + g_boardCols)) bomb_count++; // BottomRight
-                        if(IsBombOnButton(button_id + g_boardCols)) bomb_count++; // Bottom
-                        if(IsBombOnButton(button_id - 1 + g_boardCols)) bomb_count++; // BottomLeft
-                        
-                        char buf[3];
-                        
-                        sprintf(buf, "%d", bomb_count);
-                        
-                        SendMessage(hButton, WM_SETTEXT, 0, (LPARAM)buf);
-                        
-                        EnableWindow(hButton, FALSE);
+                        MessageBox(hwnd, "Failed to handle button click", "Error", MB_OK | MB_ICONERROR);
                     }
-                } break;
+                }
             }
         } break;
         case WM_CREATE:
