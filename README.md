@@ -14,8 +14,7 @@ The goal of this project is to learn to use the Win32 API using C
 - [x] feat: auto click surrounding buttons if no bombs
 - [x] feat: show disabled button when no bombs
 - [x] feat: add menu to restart game
-- [ ] feat: allow grid size to be changed
-- [ ] feat: allow bomb number to be changed
+- [x] feat: allow bomb number and grid size to be changed
 - [ ] feat: highlight button on cursor click
 - [ ] feat: red button on bomb click
 - [ ] feat: add bomb icon to buttons

@@ -3,6 +3,7 @@
 #include <windows.h>
 #include <stdio.h>
 #include <assert.h>
+#include <commctrl.h>
 
 #include "resource.h"
 
@@ -171,6 +172,17 @@ BOOL InitalizeButtons(HWND hwnd)
     return TRUE;
 }
 
+void CreateNewGame(HWND hwnd, BOOL clear_board)
+{
+    if(clear_board == TRUE)
+    {
+        ClearBoard(hwnd);
+    }
+    InitalizeButtons(hwnd);
+    ToggleBombVisibility(hwnd, FALSE);
+    PositionButtons(hwnd);
+}
+
 BOOL HandleButtonClick(HWND hwnd, int button_id, BOOL recursive)
 {
     HWND hButton = GetDlgItem(hwnd, button_id);
@@ -188,10 +200,7 @@ BOOL HandleButtonClick(HWND hwnd, int button_id, BOOL recursive)
     if(IsBombOnButton(button_id))
     {
         MessageBox(hwnd, "Bomb! Game Over...", "BOOM", MB_OK | MB_ICONWARNING);
-        ClearBoard(hwnd);
-        InitalizeButtons(hwnd);
-        ToggleBombVisibility(hwnd, FALSE);
-        PositionButtons(hwnd);
+        CreateNewGame(hwnd, TRUE);
         return TRUE;
     }
     
@@ -235,6 +244,174 @@ BOOL HandleButtonClick(HWND hwnd, int button_id, BOOL recursive)
     return TRUE;
 }
 
+BOOL SettingsDlgEnableControls(HWND hwnd, BOOL bEnable)
+{
+    HWND hRows = GetDlgItem(hwnd, IDC_SETTINGS_COLS);
+    assert(hRows != NULL);
+    EnableWindow(hRows, bEnable);
+    
+    HWND hCols = GetDlgItem(hwnd, IDC_SETTINGS_ROWS);
+    assert(hCols != NULL);
+    EnableWindow(hCols, bEnable);
+    
+    HWND hBombs = GetDlgItem(hwnd, IDC_SETTINGS_BOMBS);
+    assert(hBombs != NULL);
+    EnableWindow(hBombs, bEnable);
+    
+    return TRUE;
+}
+
+LRESULT CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    switch(msg)
+    {
+        case WM_INITDIALOG:
+        {
+            HWND slider = GetDlgItem(hwnd, IDC_SETTINGS_BOMBS);
+            assert(slider != NULL);
+            SendMessage(slider, TBM_SETRANGE, (WPARAM)TRUE, (LPARAM)MAKELONG(20, 80));
+            SendMessage(slider, TBM_SETPAGESIZE, 0, (LPARAM)10);
+            SendMessage(slider, TBM_SETPOS, (WPARAM)TRUE, (LPARAM)50);
+            
+            return TRUE;
+        } break;
+        case WM_COMMAND:
+        {
+            switch(LOWORD(wParam))
+            {
+                case IDC_SETTINGS_EASY:
+                {
+                    switch(HIWORD(wParam))
+                    {
+                        case BN_CLICKED:
+                        {
+                            if(SendDlgItemMessage(hwnd, IDC_SETTINGS_EASY, BM_GETCHECK, 0, 0) == 0)
+                            {
+                                SettingsDlgEnableControls(hwnd, FALSE);
+                                
+                                SendDlgItemMessage(hwnd, IDC_SETTINGS_EASY, BM_SETCHECK, 1, 0);
+                                SendDlgItemMessage(hwnd, IDC_SETTINGS_NORMAL, BM_SETCHECK, 0, 0);
+                                SendDlgItemMessage(hwnd, IDC_SETTINGS_HARD, BM_SETCHECK, 0, 0);
+                                SendDlgItemMessage(hwnd, IDC_SETTINGS_CUSTOM, BM_SETCHECK, 0, 0);
+                                
+                                SendDlgItemMessage(hwnd, IDC_SETTINGS_COLS, WM_SETTEXT, 0, (LPARAM)"10");
+                                SendDlgItemMessage(hwnd, IDC_SETTINGS_ROWS, WM_SETTEXT, 0, (LPARAM)"15");
+                                
+                                HWND slider = GetDlgItem(hwnd, IDC_SETTINGS_BOMBS);
+                                assert(slider != NULL);
+                                SendMessage(slider, TBM_SETPOS, (WPARAM)TRUE, (LPARAM)20);
+                            }
+                        } break;
+                    }
+                } break;
+                
+                case IDC_SETTINGS_NORMAL:
+                {
+                    switch(HIWORD(wParam))
+                    {
+                        case BN_CLICKED:
+                        {
+                            if(SendDlgItemMessage(hwnd, IDC_SETTINGS_NORMAL, BM_GETCHECK, 0, 0) == 0)
+                            {
+                                SettingsDlgEnableControls(hwnd, FALSE);
+                                
+                                SendDlgItemMessage(hwnd, IDC_SETTINGS_EASY, BM_SETCHECK, 0, 0);
+                                SendDlgItemMessage(hwnd, IDC_SETTINGS_NORMAL, BM_SETCHECK, 1, 0);
+                                SendDlgItemMessage(hwnd, IDC_SETTINGS_HARD, BM_SETCHECK, 0, 0);
+                                SendDlgItemMessage(hwnd, IDC_SETTINGS_CUSTOM, BM_SETCHECK, 0, 0);
+                                
+                                SendDlgItemMessage(hwnd, IDC_SETTINGS_COLS, WM_SETTEXT, 0, (LPARAM)"15");
+                                SendDlgItemMessage(hwnd, IDC_SETTINGS_ROWS, WM_SETTEXT, 0, (LPARAM)"20");
+                                
+                                HWND slider = GetDlgItem(hwnd, IDC_SETTINGS_BOMBS);
+                                assert(slider != NULL);
+                                SendMessage(slider, TBM_SETPOS, (WPARAM)TRUE, (LPARAM)30);
+                            }
+                        } break;
+                    }
+                } break;
+                
+                case IDC_SETTINGS_HARD:
+                {
+                    switch(HIWORD(wParam))
+                    {
+                        case BN_CLICKED:
+                        {
+                            if(SendDlgItemMessage(hwnd, IDC_SETTINGS_HARD, BM_GETCHECK, 0, 0) == 0)
+                            {
+                                SettingsDlgEnableControls(hwnd, FALSE);
+                                
+                                SendDlgItemMessage(hwnd, IDC_SETTINGS_EASY, BM_SETCHECK, 0, 0);
+                                SendDlgItemMessage(hwnd, IDC_SETTINGS_NORMAL, BM_SETCHECK, 0, 0);
+                                SendDlgItemMessage(hwnd, IDC_SETTINGS_HARD, BM_SETCHECK, 1, 0);
+                                SendDlgItemMessage(hwnd, IDC_SETTINGS_CUSTOM, BM_SETCHECK, 0, 0);
+                                
+                                SendDlgItemMessage(hwnd, IDC_SETTINGS_COLS, WM_SETTEXT, 0, (LPARAM)"20");
+                                SendDlgItemMessage(hwnd, IDC_SETTINGS_ROWS, WM_SETTEXT, 0, (LPARAM)"30");
+                                
+                                HWND slider = GetDlgItem(hwnd, IDC_SETTINGS_BOMBS);
+                                assert(slider != NULL);
+                                SendMessage(slider, TBM_SETPOS, (WPARAM)TRUE, (LPARAM)40);
+                            }
+                        } break;
+                    }
+                } break;
+                
+                case IDC_SETTINGS_CUSTOM:
+                {
+                    switch(HIWORD(wParam))
+                    {
+                        case BN_CLICKED:
+                        {
+                            if(SendDlgItemMessage(hwnd, IDC_SETTINGS_CUSTOM, BM_GETCHECK, 0, 0) == 0)
+                            {
+                                SettingsDlgEnableControls(hwnd, TRUE);
+                                
+                                SendDlgItemMessage(hwnd, IDC_SETTINGS_EASY, BM_SETCHECK, 0, 0);
+                                SendDlgItemMessage(hwnd, IDC_SETTINGS_NORMAL, BM_SETCHECK, 0, 0);
+                                SendDlgItemMessage(hwnd, IDC_SETTINGS_HARD, BM_SETCHECK, 0, 0);
+                                SendDlgItemMessage(hwnd, IDC_SETTINGS_CUSTOM, BM_SETCHECK, 1, 0);
+                            }
+                        } break;
+                    }
+                } break;
+                
+                case IDOK:
+                {
+                    HWND hWindow = GetParent(hwnd);
+                    assert(hWindow != NULL);
+                    ClearBoard(hWindow);
+                    
+                    UINT cols = GetDlgItemInt(hwnd, IDC_SETTINGS_COLS, NULL, FALSE);
+                    UINT rows = GetDlgItemInt(hwnd, IDC_SETTINGS_ROWS, NULL, FALSE);
+                    
+                    HWND hBombs = GetDlgItem(hwnd, IDC_SETTINGS_BOMBS);
+                    assert(hBombs != NULL);
+                    UINT bombs = SendMessage(hBombs, TBM_GETPOS, 0, 0);
+                    assert(bombs > 0);
+                    
+                    
+                    g_boardCols = cols;
+                    g_boardRows = rows;
+                    g_num_bombs = (cols * rows) * bombs / 100;
+                    assert(g_num_bombs > 0);
+                    
+                    EndDialog(hwnd, IDOK);
+                } break;
+                case IDCANCEL:
+                {
+                    EndDialog(hwnd, IDCANCEL);
+                } break;
+            }
+        } break;
+        default:
+        {
+            return FALSE;
+        } break;
+    }
+    return TRUE;
+}
+
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch(msg)
@@ -246,10 +423,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             {
                 case IDD_GAME_NEW:
                 {
-                    ClearBoard(hwnd);
-                    InitalizeButtons(hwnd);
-                    ToggleBombVisibility(hwnd, FALSE);
-                    PositionButtons(hwnd);
+                    CreateNewGame(hwnd, TRUE);
+                } break;
+                case IDD_GAME_SETTINGS:
+                {
+                    int res = DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_SETTINGS), hwnd, SettingsDlgProc);
+                    if(res == IDOK)
+                    {
+                        CreateNewGame(hwnd, FALSE);
+                    }
                 } break;
                 case IDD_GAME_EXIT:
                 {
@@ -286,7 +468,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     {
                         MessageBox(hwnd, "Failed to handle button click", "Error", MB_OK | MB_ICONERROR);
                     }
-                }
+                } break;
             }
         } break;
         case WM_CREATE:
