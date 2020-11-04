@@ -15,17 +15,16 @@ The goal of this project is to learn to use the Win32 API using C
 - [x] feat: show disabled button when no bombs
 - [x] feat: add menu to restart game
 - [x] feat: allow bomb number and grid size to be changed
-- [ ] feat: highlight button on cursor click
+- [ ] feat: allow player to win
 - [ ] feat: red button on bomb click
 - [ ] feat: add bomb icon to buttons
 - [ ] feat: add timer when game starts
 - [ ] feat: right click to flag as bomb
 - [ ] feat: color flag buttons green/red at end game
 
-- [ ] fix: bomb count on edge inaccurate
-- [ ] fix: toggle debug show bombs clears bomb count
 - [ ] fix: game reset ignores debug show bombs
 
 - [x] tech: only redraw once all buttons are created
+- [x] tech: refactor game board storage
 - [ ] tech: error handling to assert/message box
 - [ ] tech: seperate game logic from ui logic

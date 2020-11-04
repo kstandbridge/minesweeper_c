@@ -14,15 +14,16 @@ const char g_szClassName[] = "mineSweeperClass";
 int g_boardCols = 10;
 int g_boardRows = 15;
 int g_num_bombs = 10;
+BOOL g_bFirstMove;
 
-int* g_pBombs = NULL;
+int* g_nBoard = NULL;
 
 BOOL ClearBoard(HWND hwnd)
 {
     for(int y = 0; y < g_boardRows; ++y)
         for(int x = 0; x < g_boardCols; ++x)
     {
-        int button_id = g_boardCols * y + x + ID_BUTTON + 1;
+        int button_id = ID_BUTTON + (y * g_boardCols + x);
         
         HWND button_hwnd = GetDlgItem(hwnd, button_id);
         assert(button_hwnd != NULL);
@@ -33,38 +34,45 @@ BOOL ClearBoard(HWND hwnd)
     return TRUE;
 }
 
-BOOL IsBombOnButton(int button_id)
+BOOL IsBombOnButton(int x, int y)
 {
-    BOOL found = FALSE;
-    for(int i = 0; i < g_num_bombs; i++)
+    if(g_nBoard[y * g_boardCols + x] == -1)
     {
-        if(g_pBombs[i] == button_id)
-        {
-            found = TRUE;
-            break;
-        }
+        return TRUE;
     }
-    return found;
+    return FALSE;
 }
 
 BOOL ToggleBombVisibility(HWND hwnd, BOOL show_bombs)
 {
-    for(int y = 0; y < g_boardRows; ++y)
-        for(int x = 0; x < g_boardCols; ++x)
+    for(int x = 0; x < g_boardCols; x++)
+        for(int y = 0; y < g_boardRows; y++)
     {
-        int button_id = g_boardCols * y + x + ID_BUTTON + 1;
+        int button_id = ID_BUTTON + (y * g_boardCols + x);
         HWND button_hwnd = GetDlgItem(hwnd, button_id);
         assert(button_hwnd != NULL);
-        SendMessage(button_hwnd, WM_SETTEXT, 0, (LPARAM)"");
-        if(show_bombs)
+        
+        int value = g_nBoard[y * g_boardCols + x];
+        if(value == -1)
         {
-            for(int i = 0; i < g_num_bombs; i++)
+            if(show_bombs)
             {
-                if(g_pBombs[i] == button_id)
-                {
-                    SendMessage(button_hwnd, WM_SETTEXT, 0, (LPARAM)"B");
-                    break;
-                }
+                SendMessage(button_hwnd, WM_SETTEXT, 0, (LPARAM)"B");
+            }
+            else
+            {
+                SendMessage(button_hwnd, WM_SETTEXT, 0, (LPARAM)"");
+            }
+        }
+        else
+        {
+            if(value > 0)
+            {
+                SetDlgItemInt(hwnd, button_id, value, TRUE);
+            }
+            else
+            {
+                SendMessage(button_hwnd, WM_SETTEXT, 0, (LPARAM)"");
             }
         }
     }
@@ -82,15 +90,15 @@ BOOL PositionButtons(HWND hwnd)
     int window_width = rect.right - rect.left;
     int window_height = rect.bottom - rect.top;
     
-    for(int y = 0; y < g_boardRows; ++y)
-        for(int x = 0; x < g_boardCols; ++x)
+    for(int x = 0; x < g_boardCols; x++)
+        for(int y = 0; y < g_boardRows; y++)
     {
+        int button_id = ID_BUTTON + (y * g_boardCols + x);
+        
         int button_width = window_width / g_boardCols;
         int button_height = window_height / g_boardRows;
         int button_left = window_width / g_boardCols * x;
         int button_top = window_height / g_boardRows * y;
-        
-        int button_id = g_boardCols * y + x + ID_BUTTON + 1;
         
         HWND button_hwnd = GetDlgItem(hwnd, button_id);
         
@@ -123,42 +131,16 @@ BOOL InitalizeButtons(HWND hwnd)
         MessageBox(hwnd, "Failed to create font!", "Error", MB_OK | MB_ICONERROR);
     }
     
-    if(g_pBombs)
+    if(g_nBoard)
     {
-        GlobalFree(g_pBombs);
+        GlobalFree(g_nBoard);
     }
-    g_pBombs = GlobalAlloc(GPTR, sizeof(int) * g_num_bombs);
+    g_nBoard = GlobalAlloc(GPTR, sizeof(int) * g_boardRows * g_boardCols);
     
-    for(int i = 0; i < g_num_bombs; i++)
+    for(int x = 0; x < g_boardCols; x++)
+        for(int y = 0; y < g_boardRows; y++)
     {
-        int random_number;
-        int button_id;
-        do
-        {
-            random_number = rand() % (g_boardRows * g_boardCols);
-            button_id = random_number + ID_BUTTON + 1;
-            
-            BOOL found = FALSE;
-            for(int x = 0; x < g_num_bombs; x++)
-            {
-                if(g_pBombs[x] == button_id)
-                {
-                    found = TRUE;
-                }
-            }
-            
-            if(!found)
-            {
-                g_pBombs[i] = button_id;
-            }
-            
-        } while(g_pBombs[i] == 0);
-    }
-    
-    for(int y = 0; y < g_boardRows; ++y)
-        for(int x = 0; x < g_boardCols; ++x)
-    {
-        int button_id = g_boardCols * y + x + ID_BUTTON + 1;
+        int button_id = ID_BUTTON + (y * g_boardCols + x);
         
         HWND button_hwnd = CreateWindow("BUTTON", "", 
                                         WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON,
@@ -183,6 +165,7 @@ void CreateNewGame(HWND hwnd, BOOL clear_board)
     InitalizeButtons(hwnd);
     ToggleBombVisibility(hwnd, FALSE);
     PositionButtons(hwnd);
+    g_bFirstMove = TRUE;
 }
 
 BOOL HandleButtonClick(HWND hwnd, int button_id, BOOL recursive)
@@ -192,14 +175,37 @@ BOOL HandleButtonClick(HWND hwnd, int button_id, BOOL recursive)
     {
         return FALSE;
     }
-    assert(button_id > 9000);
+    assert(button_id >= ID_BUTTON);
     
     if(!IsWindowEnabled(hButton))
     {
         return TRUE;
     }
     
-    if(IsBombOnButton(button_id))
+    int x = (button_id - ID_BUTTON) % g_boardCols;
+    int y = (button_id - ID_BUTTON) / g_boardCols;
+    
+    
+    if(g_bFirstMove == TRUE)
+    {
+        int mines = g_num_bombs;
+        
+        while(mines > 0)
+        {
+            int rx = rand() % g_boardCols;
+            int ry = rand() % g_boardRows;
+            
+            if(g_nBoard[ry * g_boardCols + rx] == 0 && rx != x && ry != y)
+            {
+                g_nBoard[ry * g_boardCols + rx] = -1;
+                mines--;
+            }
+        }
+        
+        g_bFirstMove = FALSE;
+    }
+    
+    if(IsBombOnButton(x, y))
     {
         MessageBox(hwnd, "Bomb! Game Over...", "BOOM", MB_OK | MB_ICONWARNING);
         CreateNewGame(hwnd, TRUE);
@@ -207,14 +213,19 @@ BOOL HandleButtonClick(HWND hwnd, int button_id, BOOL recursive)
     }
     
     int bomb_count = 0;
-    if(IsBombOnButton(button_id - 1)) bomb_count++;               // Left
-    if(IsBombOnButton(button_id - 1 - g_boardCols)) bomb_count++; // TopLeft
-    if(IsBombOnButton(button_id - g_boardCols)) bomb_count++;     // Top
-    if(IsBombOnButton(button_id + 1 - g_boardCols)) bomb_count++; // TopRight
-    if(IsBombOnButton(button_id + 1)) bomb_count++;               // Right
-    if(IsBombOnButton(button_id + 1 + g_boardCols)) bomb_count++; // BottomRight
-    if(IsBombOnButton(button_id + g_boardCols)) bomb_count++;     // Bottom
-    if(IsBombOnButton(button_id - 1 + g_boardCols)) bomb_count++; // BottomLeft
+    for(int i = -1; i < 2; i++)
+    {
+        for(int j = -1; j < 2; j++)
+        {
+            if(x + i >= 0 && x + i < g_boardCols && y + j >= 0 && y + j < g_boardRows)
+            {
+                if(g_nBoard[(y + j) * g_boardCols + (x + i)] == -1)
+                {
+                    bomb_count++;
+                }
+            }
+        }
+    }
     
     if(bomb_count > 0 && recursive == TRUE)
     {
@@ -229,20 +240,25 @@ BOOL HandleButtonClick(HWND hwnd, int button_id, BOOL recursive)
         
         SendMessage(hButton, WM_SETTEXT, 0, (LPARAM)buf);
     }
+    g_nBoard[y * g_boardCols + x] = bomb_count;
     
     EnableWindow(hButton, FALSE);
     
     if(bomb_count == 0)
     {
-        HandleButtonClick(hwnd, button_id-1, TRUE);             // Left
-        HandleButtonClick(hwnd, button_id-1-g_boardCols, TRUE); // TopLeft
-        HandleButtonClick(hwnd, button_id-g_boardCols, TRUE);   // Top
-        HandleButtonClick(hwnd, button_id+1-g_boardCols, TRUE); // TopRight
-        HandleButtonClick(hwnd, button_id+1, TRUE);             // Right
-        HandleButtonClick(hwnd, button_id+1+g_boardCols, TRUE); // BottomRight
-        HandleButtonClick(hwnd, button_id+g_boardCols, TRUE);   // Bottom
-        HandleButtonClick(hwnd, button_id-1+g_boardCols, TRUE); // BottomLeft
+        for(int i = -1; i < 2; i++)
+        {
+            for(int j = -1; j < 2; j++)
+            {
+                if(x + i >= 0 && x + i < g_boardCols && y + j >= 0 && y + j < g_boardRows)
+                {
+                    int button_id = (y + j) * g_boardCols + (x + i);
+                    HandleButtonClick(hwnd, button_id + ID_BUTTON, TRUE);
+                }
+            }
+        }
     }
+    
     return TRUE;
 }
 
@@ -476,11 +492,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         case WM_CREATE:
         {
             srand(time(NULL));
+            CreateNewGame(hwnd, FALSE);
             
-            if(!InitalizeButtons(hwnd))
-            {
-                MessageBox(hwnd, "Failed to create game board!", "Error", MB_OK | MB_ICONERROR);
-            }
         } break;
         case WM_SIZE:
         {
@@ -495,9 +508,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         } break;
         case WM_DESTROY:
         {
-            if(g_pBombs)
+            if(g_nBoard)
             {
-                GlobalFree(g_pBombs);
+                GlobalFree(g_nBoard);
             }
             PostQuitMessage(0);
         } break;
