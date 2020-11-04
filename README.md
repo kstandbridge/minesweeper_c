@@ -26,6 +26,6 @@ The goal of this project is to learn to use the Win32 API using C
 - [ ] fix: toggle debug show bombs clears bomb count
 - [ ] fix: game reset ignores debug show bombs
 
-- [ ] tech: only redraw once all buttons are created
+- [x] tech: only redraw once all buttons are created
 - [ ] tech: error handling to assert/message box
 - [ ] tech: seperate game logic from ui logic

@@ -100,8 +100,10 @@ BOOL PositionButtons(HWND hwnd)
             return FALSE;
         }
         
-        MoveWindow(button_hwnd, button_left, button_top, button_width, button_height, TRUE);
+        MoveWindow(button_hwnd, button_left, button_top, button_width, button_height, FALSE);
     }
+    InvalidateRect(hwnd, NULL, TRUE);
+    UpdateWindow(hwnd);
     return TRUE;
 }
 
