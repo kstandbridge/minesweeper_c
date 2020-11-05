@@ -210,6 +210,7 @@ BOOL HandleButtonClick(HWND hwnd, int button_id, BOOL recursive)
     
     if(IsBombOnButton(x, y))
     {
+        ToggleBombVisibility(hwnd, TRUE);
         MessageBox(hwnd, "Bomb! Game Over...", "BOOM", MB_OK | MB_ICONWARNING);
         CreateNewGame(hwnd, TRUE);
         return TRUE;
