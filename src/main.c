@@ -5,6 +5,9 @@
 #include <assert.h>
 #include <commctrl.h>
 
+#include <stdlib.h>
+#include <time.h>
+
 #include "resource.h"
 
 #define ID_BUTTON 9000
@@ -242,7 +245,7 @@ BOOL HandleButtonClick(HWND hwnd, int button_id, BOOL recursive)
     {
         char buf[3];
         
-        sprintf(buf, "%d", bomb_count);
+        sprintf_s(buf, sizeof(buf), "%d", bomb_count);
         
         SendMessage(hButton, WM_SETTEXT, 0, (LPARAM)buf);
     }
@@ -266,8 +269,8 @@ BOOL HandleButtonClick(HWND hwnd, int button_id, BOOL recursive)
             {
                 if(x + i >= 0 && x + i < g_boardCols && y + j >= 0 && y + j < g_boardRows)
                 {
-                    int button_id = (y + j) * g_boardCols + (x + i);
-                    HandleButtonClick(hwnd, button_id + ID_BUTTON, TRUE);
+                    int recursive_button_id = (y + j) * g_boardCols + (x + i);
+                    HandleButtonClick(hwnd, recursive_button_id + ID_BUTTON, TRUE);
                 }
             }
         }
@@ -293,7 +296,7 @@ BOOL SettingsDlgEnableControls(HWND hwnd, BOOL bEnable)
     return TRUE;
 }
 
-LRESULT CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+BOOL CALLBACK SettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch(msg)
     {
@@ -505,7 +508,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         } break;
         case WM_CREATE:
         {
-            srand(time(NULL));
+            srand((unsigned int)time(NULL));
             CreateNewGame(hwnd, FALSE);
             
         } break;

@@ -2,11 +2,18 @@
 
 if not exist bin mkdir bin
 pushd bin
-del *.pdb > NUL 2> NUL
+del /q *.*
 echo WAITING FOR PDB > lock.tmp
 
 rc -nologo ..\src\resource.rc
-cl -nologo -Zi -FC ..\src\main.c ..\src\resource.res /link user32.lib gdi32.lib /out:main.exe
+
+set warnings_to_ignore=-wd4201 -wd4204 -wd4255 -wd4668 -wd4820 -wd4100 -wd4189 -wd4711 -wd4710 -wd4101 -wd4296 -wd4311 -wd4115 -wd4702 -wd4456 -wd4555 -wd5045
+
+REM Debug
+cl -nologo -Zi -FC -WX -Wall %warnings_to_ignore%  ..\src\main.c ..\src\resource.res /link user32.lib gdi32.lib /out:main.exe
+
+REM Prod
+REM cl -nologo -O2 -FC -WX -Wall %warnings_to_ignore% ..\src\main.c ..\src\resource.res /link user32.lib gdi32.lib /out:main.exe
 
 del *.obj
 del lock.tmp
