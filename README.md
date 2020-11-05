@@ -17,8 +17,9 @@ The goal of this project is to learn to use the Win32 API using C
 - [x] feat: allow bomb number and grid size to be changed
 - [x] feat: allow player to win
 - [x] feat: show all bombs on lose
-- [ ] feat: red button on bomb click
+- [x] feat: add bomb icon to application
 - [ ] feat: add bomb icon to buttons
+- [ ] feat: red button on bomb click
 - [ ] feat: add timer when game starts
 - [ ] feat: right click to flag as bomb
 - [ ] feat: color flag buttons green/red at end game

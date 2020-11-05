@@ -2,6 +2,8 @@
 
 #include "resource.h"
 
+IDI_MINE ICON "minesweeper.ico"
+
 IDR_MENU MENU
 BEGIN
 	POPUP "&Game"

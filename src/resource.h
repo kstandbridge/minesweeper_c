@@ -3,6 +3,7 @@
 #endif
 #define IDC_STATIC (-1) // all static control
 
+#define IDI_MINE 1001
 
 #define IDR_MENU 1100
 
