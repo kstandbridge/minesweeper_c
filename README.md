@@ -18,7 +18,7 @@ The goal of this project is to learn to use the Win32 API using C
 - [x] feat: allow player to win
 - [x] feat: show all bombs on lose
 - [x] feat: add bomb icon to application
-- [ ] feat: add bomb icon to buttons
+- [x] feat: add bomb icon to buttons
 - [ ] feat: red button on bomb click
 - [ ] feat: add timer when game starts
 - [ ] feat: right click to flag as bomb

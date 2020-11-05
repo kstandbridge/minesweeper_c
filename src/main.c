@@ -58,7 +58,9 @@ BOOL ToggleBombVisibility(HWND hwnd, BOOL show_bombs)
         {
             if(show_bombs)
             {
-                SendMessage(button_hwnd, WM_SETTEXT, 0, (LPARAM)"B");
+                HINSTANCE hInstance = GetModuleHandle(NULL);
+                HICON hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_MINE));
+                SendMessage(button_hwnd, BM_SETIMAGE, (WPARAM)IMAGE_ICON, (LPARAM)hIcon);
             }
             else
             {
@@ -144,7 +146,7 @@ BOOL InitalizeButtons(HWND hwnd)
         int button_id = ID_BUTTON + (y * g_boardCols + x);
         
         HWND button_hwnd = CreateWindow("BUTTON", "", 
-                                        WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON,
+                                        WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON | BS_ICON,
                                         (1+x)*32, (1+y)*32, 32, 32,
                                         hwnd, (HMENU)button_id, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
         if(button_hwnd == NULL)
