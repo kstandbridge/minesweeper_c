@@ -15,7 +15,7 @@ The goal of this project is to learn to use the Win32 API using C
 - [x] feat: show disabled button when no bombs
 - [x] feat: add menu to restart game
 - [x] feat: allow bomb number and grid size to be changed
-- [ ] feat: allow player to win
+- [x] feat: allow player to win
 - [ ] feat: red button on bomb click
 - [ ] feat: add bomb icon to buttons
 - [ ] feat: add timer when game starts

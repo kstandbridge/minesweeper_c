@@ -15,6 +15,7 @@ int g_boardCols = 10;
 int g_boardRows = 15;
 int g_num_bombs = 10;
 BOOL g_bFirstMove;
+int g_TilesToCheck = 0;
 
 int* g_nBoard = NULL;
 
@@ -188,6 +189,8 @@ BOOL HandleButtonClick(HWND hwnd, int button_id, BOOL recursive)
     
     if(g_bFirstMove == TRUE)
     {
+        g_TilesToCheck = (g_boardCols * g_boardRows) - g_num_bombs;
+        
         int mines = g_num_bombs;
         
         while(mines > 0)
@@ -243,6 +246,14 @@ BOOL HandleButtonClick(HWND hwnd, int button_id, BOOL recursive)
     g_nBoard[y * g_boardCols + x] = bomb_count;
     
     EnableWindow(hButton, FALSE);
+    g_TilesToCheck--;
+    
+    if(g_TilesToCheck == 0)
+    {
+        MessageBox(hwnd, "You're Winner!", "Conglaturation !!!", MB_OK | MB_ICONWARNING);
+        CreateNewGame(hwnd, TRUE);
+        return TRUE;
+    }
     
     if(bomb_count == 0)
     {
