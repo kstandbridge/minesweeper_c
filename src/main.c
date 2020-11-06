@@ -17,8 +17,9 @@ const char g_szClassName[] = "mineSweeperClass";
 int g_boardCols = 10;
 int g_boardRows = 15;
 int g_num_bombs = 10;
-BOOL g_bFirstMove;
+BOOL g_bFirstMove = TRUE;
 int g_TilesToCheck = 0;
+int g_TimerSeconds = 0;
 
 int* g_nBoard = NULL;
 
@@ -96,6 +97,16 @@ BOOL PositionButtons(HWND hwnd)
     int window_width = rect.right - rect.left;
     int window_height = rect.bottom - rect.top;
     
+    HWND hStatus = GetDlgItem(hwnd, IDC_STATUS);
+    RECT rcStatus;
+    SendMessage(hStatus, WM_SIZE, 0, 0);
+    GetWindowRect(hStatus, &rcStatus);
+    int iStatusHeight = rcStatus.bottom - rcStatus.top;
+    window_height = window_height - iStatusHeight;
+    
+    int offset_left = window_width % g_boardCols / 2;
+    int offset_top = window_height % g_boardRows / 2;
+    
     for(int x = 0; x < g_boardCols; x++)
         for(int y = 0; y < g_boardRows; y++)
     {
@@ -103,8 +114,8 @@ BOOL PositionButtons(HWND hwnd)
         
         int button_width = window_width / g_boardCols;
         int button_height = window_height / g_boardRows;
-        int button_left = window_width / g_boardCols * x;
-        int button_top = window_height / g_boardRows * y;
+        int button_left = (window_width / g_boardCols * x) + offset_left;
+        int button_top = (window_height / g_boardRows * y) + offset_top;
         
         HWND button_hwnd = GetDlgItem(hwnd, button_id);
         
@@ -164,6 +175,7 @@ BOOL InitalizeButtons(HWND hwnd)
 
 void CreateNewGame(HWND hwnd, BOOL clear_board)
 {
+    KillTimer(hwnd, IDT_TIMER);
     if(clear_board == TRUE)
     {
         ClearBoard(hwnd);
@@ -172,6 +184,10 @@ void CreateNewGame(HWND hwnd, BOOL clear_board)
     ToggleBombVisibility(hwnd, FALSE);
     PositionButtons(hwnd);
     g_bFirstMove = TRUE;
+    HWND hStatus = GetDlgItem(hwnd, IDC_STATUS);
+    SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)"New game started, good luck!");
+    g_TimerSeconds = 0;
+    SetTimer(hwnd, IDT_TIMER, 1000, (TIMERPROC)NULL);
 }
 
 BOOL HandleButtonClick(HWND hwnd, int button_id, BOOL recursive)
@@ -215,6 +231,7 @@ BOOL HandleButtonClick(HWND hwnd, int button_id, BOOL recursive)
     
     if(IsBombOnButton(x, y))
     {
+        KillTimer(hwnd, IDT_TIMER);
         ToggleBombVisibility(hwnd, TRUE);
         MessageBox(hwnd, "Bomb! Game Over...", "BOOM", MB_OK | MB_ICONWARNING);
         CreateNewGame(hwnd, TRUE);
@@ -254,8 +271,15 @@ BOOL HandleButtonClick(HWND hwnd, int button_id, BOOL recursive)
     EnableWindow(hButton, FALSE);
     g_TilesToCheck--;
     
+    char buf[255];
+    sprintf_s(buf, sizeof(buf), "Tiles to check: %d", g_TilesToCheck);
+    
+    HWND hStatus = GetDlgItem(hwnd, IDC_STATUS);
+    SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)&buf);
+    
     if(g_TilesToCheck == 0)
     {
+        KillTimer(hwnd, IDT_TIMER);
         MessageBox(hwnd, "You're Winner!", "Conglaturation !!!", MB_OK | MB_ICONWARNING);
         CreateNewGame(hwnd, TRUE);
         return TRUE;
@@ -451,6 +475,21 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch(msg)
     {
+        case WM_TIMER:
+        {
+            switch(wParam)
+            {
+                case IDT_TIMER:
+                {
+                    g_TimerSeconds++;
+                    char buf[255];
+                    sprintf_s(buf, sizeof(buf), "%d seconds.", g_TimerSeconds);
+                    HWND hStatus = GetDlgItem(hwnd, IDC_STATUS);
+                    assert(hStatus != NULL);
+                    SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)&buf);
+                } break;
+            }
+        } break;
         case WM_COMMAND:
         {
             int button_id = LOWORD(wParam);
@@ -509,8 +548,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         case WM_CREATE:
         {
             srand((unsigned int)time(NULL));
+            HWND hStatus = CreateWindowEx(0, STATUSCLASSNAME, "",
+                                          SBARS_SIZEGRIP | WS_CHILD | WS_VISIBLE,
+                                          0, 0, 0, 0,
+                                          hwnd, (HMENU)IDC_STATUS, GetModuleHandle(NULL), NULL);
+            int status_width[] = { 100, -1 };
+            SendMessage(hStatus, SB_SETPARTS, sizeof(status_width)/sizeof(int), (LPARAM)status_width);
             CreateNewGame(hwnd, FALSE);
-            
         } break;
         case WM_SIZE:
         {
@@ -525,6 +569,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         } break;
         case WM_DESTROY:
         {
+            KillTimer(hwnd, IDT_TIMER);
             if(g_nBoard)
             {
                 GlobalFree(g_nBoard);

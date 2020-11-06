@@ -4,6 +4,8 @@
 #define IDC_STATIC (-1) // all static control
 
 #define IDI_MINE 1001
+#define IDT_TIMER 1002
+#define IDC_STATUS 1003
 
 #define IDR_MENU 1100
 
