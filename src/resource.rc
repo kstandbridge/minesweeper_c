@@ -2,7 +2,12 @@
 
 #include "resource.h"
 
-IDI_MINE ICON "minesweeper.ico"
+IDI_MINE           ICON "minesweeper.ico"
+IDI_MINE_UNEXPLODE ICON "mine_unexplode.ico"
+IDI_MINE_EXPLODE   ICON "mine_explode.ico"
+IDI_MINE_CORRECT   ICON "mine_correct.ico"
+IDI_MINE_INCORRECT ICON "mine_incorrect.ico"
+IDI_MINE_UNKNOWN   ICON "mine_unknown.ico"
 
 IDR_MENU MENU
 BEGIN

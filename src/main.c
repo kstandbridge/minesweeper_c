@@ -58,23 +58,33 @@ BOOL ToggleBombVisibility(HWND hwnd, BOOL show_bombs)
         HWND button_hwnd = GetDlgItem(hwnd, button_id);
         assert(button_hwnd != NULL);
         
+        HICON hIcon = NULL;
+        HINSTANCE hInstance = GetModuleHandle(NULL);
+        char guess = g_nBoardGuess[y * g_boardCols + x];
+        
         int value = g_nBoard[y * g_boardCols + x];
         if(value == -1)
         {
             if(show_bombs)
             {
-                HINSTANCE hInstance = GetModuleHandle(NULL);
-                HICON hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_MINE));
-                SendMessage(button_hwnd, BM_SETIMAGE, (WPARAM)IMAGE_ICON, (LPARAM)hIcon);
+                if(guess == 'B')
+                {
+                    hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_MINE_CORRECT));
+                }
+                else
+                {
+                    hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_MINE_UNEXPLODE));
+                }
             }
-            else
-            {
-                SendMessage(button_hwnd, WM_SETTEXT, 0, (LPARAM)"");
-            }
+            SendMessage(button_hwnd, WM_SETTEXT, 0, (LPARAM)"");
         }
         else
         {
-            if(value > 0)
+            if(guess == 'B')
+            {
+                hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_MINE_INCORRECT));
+            }
+            else if(value > 0)
             {
                 SetDlgItemInt(hwnd, button_id, value, TRUE);
             }
@@ -83,6 +93,8 @@ BOOL ToggleBombVisibility(HWND hwnd, BOOL show_bombs)
                 SendMessage(button_hwnd, WM_SETTEXT, 0, (LPARAM)"");
             }
         }
+        
+        SendMessage(button_hwnd, BM_SETIMAGE, (WPARAM)IMAGE_ICON, (LPARAM)hIcon);
     }
     return TRUE;
 }
@@ -145,24 +157,51 @@ LRESULT CALLBACK ButtonWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
             int x = (button_id - ID_BUTTON) % g_boardCols;
             int y = (button_id - ID_BUTTON) / g_boardCols;
             char currentGuess = g_nBoardGuess[y * g_boardCols + x];
-            char newGuess[2] = { ' ', '\0' };
+            char newGuess;
             switch(currentGuess)
             {
                 case 'B':
                 {
-                    newGuess[0] = '?';
+                    newGuess = '?';
                 } break;
                 case '?':
                 {
-                    newGuess[0] = ' ';
+                    newGuess = ' ';
                 } break;
                 default:
                 {
-                    newGuess[0] = 'B';
+                    newGuess = 'B';
                 } break;
             }
-            g_nBoardGuess[y * g_boardCols + x] = newGuess[0];
-            SendMessage(hwnd, WM_SETTEXT, 0, (LPARAM)newGuess);
+            g_nBoardGuess[y * g_boardCols + x] = newGuess;
+            
+            HINSTANCE hInstance = GetModuleHandle(NULL);
+            HICON hIcon = NULL;
+            
+            switch(newGuess)
+            {
+                case 'B':
+                {
+                    hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_MINE_UNEXPLODE));
+                } break;
+                case '?':
+                {
+                    hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_MINE_UNKNOWN));
+                } break;
+                
+            }
+            
+            if(hIcon != NULL)
+            {
+                SendMessage(hwnd, BM_SETIMAGE, (WPARAM)IMAGE_ICON, (LPARAM)hIcon);
+            }
+            else
+            {
+                SendMessage(hwnd, BM_SETIMAGE, (WPARAM)IMAGE_ICON, (LPARAM)0);
+                SendMessage(hwnd, WM_SETTEXT, 0, (LPARAM)" ");
+            }
+            
+            
         } break;
     }
     return DefSubclassProc(hwnd, msg, wParam, lParam);
@@ -278,6 +317,9 @@ BOOL HandleButtonClick(HWND hwnd, int button_id, BOOL recursive)
     {
         KillTimer(hwnd, IDT_TIMER);
         ToggleBombVisibility(hwnd, TRUE);
+        HINSTANCE hInstance = GetModuleHandle(NULL);
+        HICON hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_MINE_EXPLODE));
+        SendMessage(hButton, BM_SETIMAGE, (WPARAM)IMAGE_ICON, (LPARAM)hIcon);
         MessageBox(hwnd, "Bomb! Game Over...", "BOOM", MB_OK | MB_ICONWARNING);
         CreateNewGame(hwnd, TRUE);
         return TRUE;
