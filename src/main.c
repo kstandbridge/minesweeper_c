@@ -22,6 +22,7 @@ int g_TilesToCheck = 0;
 int g_TimerSeconds = 0;
 
 int* g_nBoard = NULL;
+char* g_nBoardGuess = NULL;
 
 BOOL ClearBoard(HWND hwnd)
 {
@@ -132,6 +133,41 @@ BOOL PositionButtons(HWND hwnd)
     return TRUE;
 }
 
+LRESULT CALLBACK ButtonWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
+{
+    switch(msg)
+    {
+        case WM_RBUTTONUP:
+        {
+            char buf[255];
+            int button_id = GetDlgCtrlID(hwnd);
+            
+            int x = (button_id - ID_BUTTON) % g_boardCols;
+            int y = (button_id - ID_BUTTON) / g_boardCols;
+            char currentGuess = g_nBoardGuess[y * g_boardCols + x];
+            char newGuess[2] = { ' ', '\0' };
+            switch(currentGuess)
+            {
+                case 'B':
+                {
+                    newGuess[0] = '?';
+                } break;
+                case '?':
+                {
+                    newGuess[0] = ' ';
+                } break;
+                default:
+                {
+                    newGuess[0] = 'B';
+                } break;
+            }
+            g_nBoardGuess[y * g_boardCols + x] = newGuess[0];
+            SendMessage(hwnd, WM_SETTEXT, 0, (LPARAM)newGuess);
+        } break;
+    }
+    return DefSubclassProc(hwnd, msg, wParam, lParam);
+}
+
 BOOL InitalizeButtons(HWND hwnd)
 {
     RECT rect;
@@ -154,6 +190,13 @@ BOOL InitalizeButtons(HWND hwnd)
     }
     g_nBoard = GlobalAlloc(GPTR, sizeof(int) * g_boardRows * g_boardCols);
     
+    if(g_nBoardGuess)
+    {
+        GlobalFree(g_nBoardGuess);
+    }
+    g_nBoardGuess = GlobalAlloc(GPTR, sizeof(int) * g_boardRows * g_boardCols);
+    
+    
     for(int x = 0; x < g_boardCols; x++)
         for(int y = 0; y < g_boardRows; y++)
     {
@@ -163,6 +206,9 @@ BOOL InitalizeButtons(HWND hwnd)
                                         WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON | BS_ICON,
                                         (1+x)*32, (1+y)*32, 32, 32,
                                         hwnd, (HMENU)button_id, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
+        
+        SetWindowSubclass(button_hwnd, ButtonWndProc, 0, 0);
+        
         if(button_hwnd == NULL)
         {
             MessageBox(hwnd, "Failed to create button!", "Error", MB_OK | MB_ICONERROR);
@@ -206,7 +252,6 @@ BOOL HandleButtonClick(HWND hwnd, int button_id, BOOL recursive)
     
     int x = (button_id - ID_BUTTON) % g_boardCols;
     int y = (button_id - ID_BUTTON) / g_boardCols;
-    
     
     if(g_bFirstMove == TRUE)
     {
@@ -573,6 +618,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             if(g_nBoard)
             {
                 GlobalFree(g_nBoard);
+            }
+            if(g_nBoardGuess)
+            {
+                GlobalFree(g_nBoardGuess);
             }
             PostQuitMessage(0);
         } break;
